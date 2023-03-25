@@ -7,12 +7,12 @@ int main(int argc, char **argv)
 {
     struct arg_file* dbfile = arg_file0(NULL, NULL, "DB", "database file");
     struct arg_file *file    = arg_file0(NULL, NULL, "ROM", "rom file for scanning");
-    struct arg_int* voffset = arg_int0("v", "voffset", NULL, "virtual offset");
+    struct arg_int* voffset = arg_int0("v", "voffset", NULL, "virtual offset. If not provided, the default value in the database will be used");
     struct arg_lit * help    = arg_lit0(NULL, "help", "print this help and exit");
     struct arg_end * end     = arg_end(20);
 
     void *argtable[] = { dbfile, file, voffset, help, end };
-    voffset->ival[0] = 0;
+    voffset->ival[0] = -1;
     arg_parse(argc, argv, argtable);
 
     if (help->count > 0 || file->count == 0)
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     else
     {
         Scanner scanner(*dbfile->filename);
-        scanner.ScanFile(*file->filename, voffset->ival[0]);
+        scanner.Scan(*file->filename, voffset->ival[0]);
         scanner.PrintResults();
     }
 

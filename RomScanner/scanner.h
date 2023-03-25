@@ -25,13 +25,12 @@ public:
 
 	bool LoadDatabase(const char* name);
 	
-	bool ScanFile(const char* name, int voffset);
-	bool ScanHex(char* buf, size_t size, int voffset);
+	bool Scan(const char* name, int voffset);
+	bool Scan(char* buf, size_t size, int voffset);
 	const std::vector<ResultStruct> GetResults() { return _results; };
 	void PrintResults();
 
 private:
-	void _ToHexString(char *inbuf, char *hexbuf, size_t size);
 	void _PostProcessResults(size_t size, int voffset);
 	void _Deinitialize();
 

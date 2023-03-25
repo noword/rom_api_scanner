@@ -68,6 +68,11 @@ bool DB::Load(const char* path)
 	_db_bytes = new char[_db_size];
 	_ZFileRead(_db_bytes, _db_size, fp);
 
+	if (fread(&DefaultVOffset, sizeof(DefaultVOffset), 1, fp) != 1)
+	{
+		DefaultVOffset = 0;
+	}
+
 	fclose(fp);
 	return true;
 }
@@ -102,8 +107,10 @@ bool DB::Save(const char* path)
 	_ZFileWrite(buf, size, fp);
 	_ZFileWrite(_db_bytes, _db_size, fp);
 
-	delete[]buf;
+	fwrite(&DefaultVOffset, sizeof(DefaultVOffset), 1, fp);
 
+	delete[]buf;
 	fclose(fp);
+
 	return true;
 }

@@ -5,7 +5,7 @@
 class DB
 {
 public:
-    DB() :_db_bytes(nullptr), _db_size(0) {};
+    DB() :_db_bytes(nullptr), _db_size(0), DefaultVOffset(0) {};
     virtual ~DB() {
         if (_db_bytes != nullptr)
         {
@@ -33,6 +33,8 @@ public:
 
     const char* GetDb() { return _db_bytes; };
     size_t GetDbSize() { return _db_size; };
+
+    uint32_t DefaultVOffset;
 
 private:
     void _ZFileWrite(void* buf, size_t size, FILE* fp);

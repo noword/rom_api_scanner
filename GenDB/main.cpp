@@ -6,7 +6,7 @@
 #include "hs.h"
 
 
-void convert(const char *bin_name, const char *hs_name)
+void convert(const char *bin_name, const char *hs_name, int voffset)
 {
     FILE *fp = fopen(bin_name, "rb");
     if (!fp)
@@ -83,6 +83,7 @@ void convert(const char *bin_name, const char *hs_name)
     else
     {
         DB _db;
+        _db.DefaultVOffset = voffset;
         for (int i = 0; i < *num; i++)
         {
             _db.AddName(names[i]);
@@ -101,13 +102,15 @@ void convert(const char *bin_name, const char *hs_name)
 
 int main(int argc, char **argv)
 {
-    struct arg_file *bin_file = arg_file0(NULL, NULL, "BIN", "bin file generating by collect.py");
-    struct arg_file *hs_file  = arg_file0(NULL, NULL, "DB", "database file");
+    struct arg_file *bin_file = arg_file1(NULL, NULL, "BIN", "bin file generating by collect.py");
+    struct arg_file *hs_file  = arg_file1(NULL, NULL, "DB", "database file");
+    struct arg_int* default_voffset = arg_int0("v", "voffset", "<int>", "set default virtual offset");
     struct arg_lit * help     = arg_lit0(NULL, "help", "print this help and exit");
     struct arg_end * end      = arg_end(20);
 
-    void *argtable[] = { bin_file, hs_file, help, end };
+    void *argtable[] = { bin_file, hs_file,default_voffset, help, end };
 
+    default_voffset->ival[0] = 0;
     arg_parse(argc, argv, argtable);
 
     if (help->count > 0 || bin_file->count == 0 || hs_file->count == 0)
@@ -118,7 +121,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        convert(*bin_file->filename, *hs_file->filename);
+        convert(*bin_file->filename, *hs_file->filename, default_voffset->ival[0]);
     }
 
     arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));

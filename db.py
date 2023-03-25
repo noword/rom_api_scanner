@@ -20,6 +20,14 @@ class DB(list):
 
     def save(self, io):
         io.write(pack('I', len(self)))
-        for pattern, name in self:
+        for name, pattern in self:
             self.__write_str(io, name)
             self.__write_str(io, pattern)
+
+
+if __name__ == '__main__':
+    import sys
+    db = DB()
+    db.load(open(sys.argv[1], 'rb'))
+    for name, pattern in db:
+        print(name, pattern)

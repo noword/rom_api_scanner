@@ -49,7 +49,7 @@ bool Scanner::LoadDatabase(const char *name)
     return err == HS_SUCCESS;
 }
 
-bool Scanner::ScanFile(const char *name, int voffset)
+bool Scanner::Scan(const char *name, int voffset)
 {
     FILE *fp = fopen(name, "rb");
     if (!fp)
@@ -65,43 +65,28 @@ bool Scanner::ScanFile(const char *name, int voffset)
     fread(inbuf, size, 1, fp);
     fclose(fp);
     
-    char* buf = new char[size * 2 + 1];
-    _ToHexString(inbuf, buf, size);
+    bool result = Scan(inbuf, size, voffset);
+    
     delete[]inbuf;
 
-    ScanHex(buf, size * 2, voffset);
-
-    delete[]buf;
-    return true;
-}
-
-
-void Scanner::_ToHexString(char* inbuf, char* hexbuf, size_t size)
-{
-    static const char* HEX = "0123456789abcdef";
-
-    unsigned char* inp = (unsigned char*)inbuf;
-    char* outp = hexbuf;
-    for (int i = 0; i < size; i++)
-    {
-        *outp++ = HEX[*inp >> 4];
-        *outp++ = HEX[*inp & 0xf];
-        inp++;
-    }
-
-    *outp = '\x00';
+    return result;
 }
 
 static int eventHandler(unsigned int id, unsigned long long from,
                         unsigned long long to, unsigned int flags, void *ctx)
 {
     std::vector<ResultStruct>* results = (std::vector<ResultStruct> *)ctx;
-    results->push_back({id, (unsigned int) from/2, (unsigned int)to/2, nullptr});
+    results->push_back({id, (unsigned int) from, (unsigned int)to, nullptr});
     return 0;
 }
 
-bool Scanner::ScanHex(char *buf, size_t size, int voffset)
+bool Scanner::Scan(char *buf, size_t size, int voffset)
 {
+    if (voffset == -1)
+    {
+        voffset = _db.DefaultVOffset;
+    }
+
     _results.clear();
     hs_error_t err = hs_scan(_hs_db, buf, size, 0, _hs_scratch, eventHandler, &_results);
     if ( err != HS_SUCCESS)
@@ -111,7 +96,7 @@ bool Scanner::ScanHex(char *buf, size_t size, int voffset)
     }
     else
     {
-        _PostProcessResults(size / 2, voffset);
+        _PostProcessResults(size , voffset);
     }
     return err == HS_SUCCESS;
 }
