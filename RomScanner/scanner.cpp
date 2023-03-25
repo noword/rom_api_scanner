@@ -105,7 +105,7 @@ void Scanner::PrintResults()
 {
     for (const auto &r : _results)
     {
-        printf("%08x  %s\n", r.start, r.name);
+        printf("%08x %s\n", r.start, r.name);
     }
 }
 

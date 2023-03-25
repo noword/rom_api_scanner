@@ -54,7 +54,8 @@ def find_functions(io):
     for i, section in enumerate(elf.iter_sections()):
         if isinstance(section, SymbolTableSection):
             for symbol in section.iter_symbols():
-                if symbol['st_info'].type in ('STT_FUNC', 'STT_LOPROC'):
+                if symbol['st_info'].type in ('STT_FUNC', 'STT_LOPROC') and \
+                        not(len(symbol.name) == 2 and symbol.name.startswith('$')):
                     symbols.append(symbol)
         elif isinstance(section, RelocationSection):
             relocs[section['sh_info']] = section
