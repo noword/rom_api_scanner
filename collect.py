@@ -6,7 +6,7 @@ from io import BytesIO
 import argparse
 import subprocess
 import re
-from db import DB
+
 # https://github.com/vidstige/ar/
 import ar
 
@@ -102,11 +102,17 @@ def check_short(v):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('path', action='store', nargs=1)
+    parser.add_argument('out_path', action='store', nargs='?')
     parser.add_argument('name', action='store', nargs='?')
     args = parser.parse_args()
 
+    if args.out_path is None:
+        out_path = Path(args.path[0]).name + '.txt'
+    else:
+        out_path = args.out_path
+
     if args.name is None:
-        name = args.path[0] + '.bin'
+        name = str(Path(out_path).stem)
     else:
         name = args.name
 
@@ -121,6 +127,11 @@ if __name__ == '__main__':
         elif path.suffix == '.o':
             update(open(path, 'rb'))
 
-    db = DB([(n, p) for p, n in filter(check_short, results.items())])
-    db.sort(key=lambda x: len(x[1]), reverse=True)
-    db.save(open(name, 'wb'))
+    db = list(filter(check_short, results.items()))
+    db.sort(key=lambda x: len(x[0]), reverse=True)
+    out = [name, ]
+    for p, n in db:
+        out.append(n)
+        out.append(p)
+
+    open(out_path, 'w').write('\n'.join(out))

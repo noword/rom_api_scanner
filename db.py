@@ -2,6 +2,8 @@ from struct import unpack, pack
 
 
 class DB(list):
+    name = 'undefined'
+
     def __read_str(self, io, encoding='ascii'):
         size, = unpack('I', io.read(4))
         return io.read(size).decode(encoding).strip('\x00')
@@ -12,6 +14,7 @@ class DB(list):
         io.write(s)
 
     def load(self, io):
+        self.name = self.__read_str(io)
         num, = unpack('I', io.read(4))
         for _ in range(num):
             name = self.__read_str(io)
@@ -19,6 +22,7 @@ class DB(list):
             self.append((name, pattern))
 
     def save(self, io):
+        self.__write_str(io, self.name)
         io.write(pack('I', len(self)))
         for name, pattern in self:
             self.__write_str(io, name)

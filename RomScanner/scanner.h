@@ -19,23 +19,20 @@ struct ResultStruct
 class Scanner
 {
 public:
-	Scanner();
-	Scanner(const char* name) :Scanner() { LoadDatabase(name); };
-	virtual ~Scanner();
+	Scanner(DB* db):_db(db) {};
+	virtual ~Scanner() {};
 
-	bool LoadDatabase(const char* name);
-	
-	bool Scan(const char* name, int voffset);
-	bool Scan(char* buf, size_t size, int voffset);
+	bool Scan(int db_index, const char* name, int voffset);
+	bool Scan(int db_index, const char* buf, size_t size, int voffset);
 	const std::vector<ResultStruct> GetResults() { return _results; };
+	const std::string GetSdkName() { return _sdk_name; };
 	void PrintResults();
 
 private:
-	void _PostProcessResults(size_t size, int voffset);
-	void _Deinitialize();
+	void _PostProcessResults(size_t size, int voffset, const std::vector<std::string> &names);
+	bool _Scan(const char *buf, size_t size, Database *database, int voffset);
 
-	DB _db;
-	hs_database_t* _hs_db;
-	hs_scratch_t* _hs_scratch;
+	DB *_db;
 	std::vector<ResultStruct> _results;
+	std::string _sdk_name;
 };
