@@ -22,10 +22,11 @@ Options are:
       `ndstool [XXX.nds] -x -9 code.bin`
   
     - Or dump it with [No$GBA](https://www.nogba.com/):
-  ![](pic/no%24gba.jpg)
+  
+      ![](pic/no%24gba.jpg)
 
       After the rom is loaded, dump 4M bytes from address 0x02000000. (recommend this way)
 
-2. Scan functions in this code binary and save the output to a sym file.
+1. Scan functions in this code binary and save the output to a sym file.
    
    `RomScanner nds.zdb code.bin > XXX.sym`
