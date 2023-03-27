@@ -76,13 +76,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../hyperscan;../db</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../argtable3;../hyperscan;../db</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../hyperscan;$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -93,7 +93,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../hyperscan;../db</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../argtable3;../hyperscan;../db</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -101,7 +101,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../hyperscan;$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -110,13 +110,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../hyperscan;../db</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../argtable3;../hyperscan;../db</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../hyperscan;$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../hyperscan;../db</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../argtable3;../hyperscan;../db</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,16 +135,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../hyperscan;$(OutDir);</AdditionalLibraryDirectories>
-      <AdditionalDependencies>hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="argtable3.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="argtable3.h" />
     <ClInclude Include="hyperscan\hs.h" />
     <ClInclude Include="hyperscan\hs_common.h" />
     <ClInclude Include="hyperscan\hs_compile.h" />

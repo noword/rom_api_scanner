@@ -41,4 +41,4 @@ Options are:
 
 3. Compile patterns, get database
    
-   `GenDB xxx.zdb xxx_v1.txt xxxv2.txt -v [Base Offset]`
+   `GenDB xxx.zdb xxx_v1.txt xxxv2.txt -v [Default Base Offset]`
