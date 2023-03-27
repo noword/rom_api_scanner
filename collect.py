@@ -74,7 +74,10 @@ def find_functions(io):
     names = [s.name for s in symbols]
     names = demangle_names(names)
     for i, symbol in enumerate(symbols):
-        start = symbol['st_value'] * 2
+        start = symbol['st_value']
+        if elf.get_machine_arch() == 'ARM':
+            start &= 0xfffffffe
+        start *= 2
         if symbol['st_size'] > 0:
             end = start + symbol['st_size'] * 2
         else:
