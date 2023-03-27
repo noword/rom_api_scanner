@@ -30,3 +30,15 @@ Options are:
 1. Scan functions in this code binary and save the output to a sym file.
    
    `RomScanner nds.zdb code.bin > XXX.sym`
+
+# Generate database
+1. Put static libs to directory xxx_v1, xxx_v2 ...
+2. Collect information in static libs, generate xxx_v1.txt, xxx_v2.txt 
+   
+   `collect.py xxx_v1`
+   
+   `collect.py xxx_v2`
+
+3. Compile patterns, get database
+   
+   `GenDB xxx.zdb xxx_v1.txt xxxv2.txt -v [Base Offset]`

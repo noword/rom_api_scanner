@@ -41,7 +41,9 @@ def demangle(name):
 def demangle_names(names):
     buf = '\n'.join(names).encode('ascii')
     proc = subprocess.run('c++filt -p', stdout=subprocess.PIPE, input=buf)
-    names = proc.stdout.decode('ascii').split('\r\n')
+    output = proc.stdout.decode('ascii')
+    sep = '\r\n' if '\r\n' in output else '\n'
+    names = proc.stdout.decode('ascii').split(sep)
     return names
 
 
@@ -55,6 +57,7 @@ def find_functions(io):
         if isinstance(section, SymbolTableSection):
             for symbol in section.iter_symbols():
                 if symbol['st_info'].type in ('STT_FUNC', 'STT_LOPROC') and \
+                        isinstance(symbol['st_shndx'], int) and \
                         not(len(symbol.name) == 2 and symbol.name.startswith('$')):
                     symbols.append(symbol)
         elif isinstance(section, RelocationSection):
@@ -76,6 +79,7 @@ def find_functions(io):
             end = start + symbol['st_size'] * 2
         else:
             end = None
+        # print(symbol['st_shndx'], symbol.name, symbol['st_info'].type, symbol['st_size'])
         buf = to_pattern_str(texts[symbol['st_shndx']][start:end])
         if buf in results:
             results[buf] += f' / {names[i]}'
@@ -118,6 +122,8 @@ if __name__ == '__main__':
 
     results = {}
     for path in Path(args.path[0]).rglob('*'):
+        if not path.is_file():
+            continue
         print(path)
         if path.suffix == '.a':
             with open(path, 'rb') as fp:
