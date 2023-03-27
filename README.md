@@ -27,7 +27,7 @@ Options are:
 
       After the rom is loaded, dump 4M bytes from address 0x02000000. (recommend this way)
 
-1. Scan functions in this code binary and save the output to a sym file.
+1. Scan this binary file for functions and save the output to a sym file.
    
    `RomScanner nds.zdb code.bin > XXX.sym`
 
