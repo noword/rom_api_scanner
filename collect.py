@@ -25,7 +25,7 @@ def to_pattern_str(hex_list):
     s = ''.join(hex_list).strip('.')
     for n in range(20, 0, -1):
         n *= 8
-        s = s.replace('.' * n, f'.{{{n//2}}}')
+        s = s.replace('.' * n, '.' * (n // 2))
     s = re.sub(r'([0-9a-f]{2})', r'\\x\1', s)
     return s
 
