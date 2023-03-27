@@ -96,6 +96,7 @@ bool GenDatabase(const char *txt_name, Database *datebase)
     size_t num = datebase->GetNames().size();
     if (num != pattern_strs.size())
     {
+        printf("the number of names and patterns are not same, check your input file\n");
         return false;
     }
 
