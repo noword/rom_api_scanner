@@ -149,8 +149,8 @@ void Generate(const char *db_name, const char **txt_names, int count, int voffse
 int main(int argc, char **argv)
 {
     struct arg_file *db_file         = arg_file1(NULL, NULL, "DB", "database file");
-    struct arg_file *txt_files       = arg_filen(NULL, NULL, "TXT", 1, 255, "txt file generating by collect.py");
-    struct arg_int * default_voffset = arg_int0("v", "voffset", "<int>", "set default virtual offset");
+    struct arg_file *txt_files       = arg_filen(NULL, NULL, "TXT", 1, 255, "txt file generating by the script collect.py");
+    struct arg_int * default_voffset = arg_int0("v", "voffset", "<int>", "set the default virtual offset");
     struct arg_lit * help            = arg_lit0(NULL, "help", "print this help and exit");
     struct arg_end * end             = arg_end(20);
 

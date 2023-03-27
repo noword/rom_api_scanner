@@ -2,7 +2,7 @@
 #include "argtable3.h"
 #include "scanner.h"
 
-#define VERSION "v0.0.4"
+#define VERSION "v0.0.5"
 
 int main(int argc, char **argv)
 {

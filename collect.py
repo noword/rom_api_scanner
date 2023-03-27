@@ -13,9 +13,10 @@ import ar
 
 # https://refspecs.linuxbase.org/elf
 
-
+# ENUM_RELOC_TYPE_ARM is defined in elftools.elf.enums
 ARM_RELOC_BYTES = {
     0: 0,  # R_ARM_NONE
+    1: 3,  # R_ARM_PC24
     2: 4,  # R_ARM_ABS32
     10: 4,  # R_ARM_THM_CALL
     28: 3,  # R_ARM_CALL
@@ -95,7 +96,7 @@ def find_functions(io):
     for i, section in relocs.items():
         if i in needed_texts_index:
             for reloc in section.iter_relocations():
-                # print(i, reloc['r_info_type'], RELOC_TYPE[reloc['r_info_type']], '%x' % reloc['r_offset'])
+                # verboseprint(i, reloc['r_info_type'], '%x' % reloc['r_offset'])
                 texts[i] = fix_reloc(texts[i], reloc['r_offset'], reloc['r_info_type'])
 
     results = {}
@@ -139,7 +140,10 @@ if __name__ == '__main__':
     parser.add_argument('path', action='store', nargs=1)
     parser.add_argument('out_path', action='store', nargs='?')
     parser.add_argument('name', action='store', nargs='?')
+    parser.add_argument('--verbose', action='store_true', default=False)
     args = parser.parse_args()
+
+    verboseprint = print if args.verbose else lambda *a, **k: None
 
     if args.out_path is None:
         out_path = Path(args.path[0]).name + '.txt'
@@ -159,7 +163,7 @@ if __name__ == '__main__':
         if path.suffix == '.a':
             with open(path, 'rb') as fp:
                 for archive in ar.Archive(fp):
-                    # print(' ', archive.name)
+                    verboseprint(' ', archive.name)
                     update(BytesIO(archive.get_stream(fp).read()))
         elif path.suffix == '.o':
             update(open(path, 'rb'))
