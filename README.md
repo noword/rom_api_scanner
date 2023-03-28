@@ -37,7 +37,7 @@ Options are:
    `RomScanner nds.zdb code.bin > XXX.sym`
 
 # Tools description
-|               |                                                                                         |
+| Name          | Description                                                                             |
 |---------------|-----------------------------------------------------------------------------------------|
 | collect.py    | search all function binary codes from static libraries, save the patterns to a txt file |
 | GenDB         | Generate a datebase from txt files that collected by collect.py                         |
