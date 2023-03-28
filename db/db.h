@@ -58,7 +58,7 @@ public:
         _db_bytes.assign(bytes, size);
     };
 
-    const char * GetDb() { return _db_bytes.c_str(); };
+    const char * const GetDb() { return _db_bytes.c_str(); };
     size_t GetDbSize() { return _db_bytes.size(); };
 
     std::string Name;
