@@ -52,23 +52,6 @@ void _ZFileWrite(void *buf, size_t size, FILE *fp)
     delete[]zbuf;
 }
 
-struct ZDB_HEADER
-{
-    uint32_t num;
-    uint32_t voffset;
-    uint32_t points_offset;
-    uint32_t strings_offset;
-    uint32_t dbs_offset;
-};
-
-struct DATABASE_HEADER
-{
-    uint32_t name_offset;
-    uint32_t num;
-    uint32_t db_offset;
-    uint32_t db_size;
-};
-
 bool DB::Load(const char *path)
 {
     FILE *fp = fopen(path, "rb");
