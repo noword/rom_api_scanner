@@ -9,11 +9,6 @@ struct ResultStruct
 	uint32_t start;
 	uint32_t end;
 	const char* name;
-
-	bool operator<(const ResultStruct& a) const
-	{
-		return index < a.index;
-	}
 };
 
 class Scanner

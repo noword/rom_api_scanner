@@ -2,74 +2,48 @@
 #include <vector>
 #include <string>
 
+// --- zdb format ---
+// ZDB_HEADER
+// compressed points block
+// compressed strings block
+// compressed hyperscan database block
 
-// --- DB struct ---
-// Offset  Size    Description
-// 0       4       number of database
-// 4       4       default virtual offset
-// 8       ?       [database 0]
-// ?       ?       [database 1]
-// ...
-//
-//
-// --- database struct ---
-// Offset  Size    Description
-// 0       4       length of name string with null terminator
-// 4       length  name string
-// ?       ?       compressed names block
-// ?       ?       compressed hscan database block
-//
-//
-// --- compressed block ---
-// Offset  Size    Description
-// 0       4       size
-// 4       4       zsize
-// 8       zsize   zbuf
-//
-//
-// --- names struct ---
-// Offset  Size    Description
-// 0       4       number of names
-// 4       4       length of first name string with null terminator
-// 8       length  name string
-// ?       ?       length of second
-// ?       ?       name string
-// ...
+struct ZDB_HEADER
+{
+    uint32_t num;
+    uint32_t voffset;
+    uint32_t points_offset;
+    uint32_t strings_offset;
+    uint32_t dbs_offset;
+};
 
+struct DATABASE_HEADER
+{
+    uint32_t name_offset;
+    uint32_t num;
+    uint32_t db_offset;
+    uint32_t db_size;
+};
 
 class Database
 {
 public:
-    Database() {};
-    Database(const char *path) : Database() { Load(path); };
-    Database(FILE *fp) : Database() { Load(fp); };
-    virtual ~Database()    {};
-
-    bool Load(const char *path);
-    bool Save(const char *path);
-    bool Load(FILE *fp);
-    bool Save(FILE *fp);
-
     void AddName(const char *name) { _names.push_back(name); };
-    const std::vector <std::string>& GetNames() { return _names; };
-
-    void SetDb(const char *bytes, size_t size)
+    void SetDb(const char* bytes, size_t size)
     {
         _db_bytes.assign(bytes, size);
     };
 
+    const std::vector <std::string>& GetNames() { return _names; };
     const char * const GetDb() { return _db_bytes.c_str(); };
     size_t GetDbSize() { return _db_bytes.size(); };
-
     std::string Name;
 
 private:
-    size_t _ZFileRead(void *buf, size_t size, FILE *fp);
-    void _ZFileWrite(void *buf, size_t size, FILE *fp);
-
     std::vector <std::string> _names;
     std::string _db_bytes;
 };
+
 
 class DB : public std::vector <Database>
 {
@@ -77,4 +51,8 @@ public:
     uint32_t DefaultVOffset;
     bool Load(const char *path);
     bool Save(const char *path);
+
+private:
+    void _GetSerializedBufSize(size_t *points_size, size_t *strings_size, size_t *hsdbs_size);
+    void _SerializeToMemory(char *points, char *strings, char *hsdbs, size_t *strings_size);
 };

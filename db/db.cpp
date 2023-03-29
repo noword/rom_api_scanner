@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "minilzo.h"
+#include <unordered_map>
+#include <string>
 #include "db.h"
+#include "lz4hc.h"
 
-#define  OUT_LEN(N)    ((N) + (N) / 16 + 64 + 3)
 
 
-size_t Database::_ZFileRead(void *buf, size_t size, FILE *fp)
+uint32_t _ZFileRead(void *buf, size_t size, FILE *fp)
 {
     uint32_t _size;
     uint32_t _zsize;
@@ -19,123 +20,54 @@ size_t Database::_ZFileRead(void *buf, size_t size, FILE *fp)
     }
 
     fread(&_zsize, sizeof(uint32_t), 1, fp);
-    unsigned char *zbuf = new unsigned char[_zsize];
+    char *zbuf = new char[_zsize];
     fread(zbuf, _zsize, 1, fp);
-    lzo1x_decompress(zbuf, _zsize, (unsigned char *)buf, &size, NULL);
+
+    LZ4_decompress_safe(zbuf, (char *)buf, _zsize, size);
+
     delete[]zbuf;
     return _size;
 }
 
-void Database::_ZFileWrite(void *buf, size_t size, FILE *fp)
+// Don't forget delete[] !!!
+char * _ZFileRead(FILE *fp)
 {
-    unsigned char *zbuf   = new unsigned char[OUT_LEN(size)];
-    char *         wrkmem = new char[LZO1X_1_MEM_COMPRESS];
-    lzo_uint       zsize  = 0;
+    uint32_t size = _ZFileRead(nullptr, 0, fp);
+    char *   buf  = new char[size];
+    _ZFileRead(buf, size, fp);
+    return buf;
+}
 
-    lzo1x_1_compress((unsigned char *)buf, size, (unsigned char *)zbuf, &zsize, wrkmem);
+void _ZFileWrite(void *buf, size_t size, FILE *fp)
+{
+    size_t zsize = LZ4_compressBound(size);
+    char * zbuf  = new char[zsize];
+
+    zsize = LZ4_compress_HC((const char *)buf, zbuf, size, zsize, LZ4HC_CLEVEL_MAX);
 
     fwrite(&size, sizeof(uint32_t), 1, fp);
     fwrite(&zsize, sizeof(uint32_t), 1, fp);
     fwrite(zbuf, zsize, 1, fp);
 
-    delete[]wrkmem;
     delete[]zbuf;
 }
 
-bool Database::Load(const char *path)
+struct ZDB_HEADER
 {
-    FILE *fp = fopen(path, "rb");
-    if (!fp)
-    {
-        return false;
-    }
+    uint32_t num;
+    uint32_t voffset;
+    uint32_t points_offset;
+    uint32_t strings_offset;
+    uint32_t dbs_offset;
+};
 
-    bool result = Load(fp);
-    fclose(fp);
-
-    return result;
-}
-
-bool Database::Load(FILE *fp)
+struct DATABASE_HEADER
 {
-    uint32_t length;
-    fread(&length, sizeof(uint32_t), 1, fp);
-    char* name = new char[length + 1];
-    fread(name, length, 1, fp);
-    Name = name;
-    delete[]name;
-
-    size_t size = _ZFileRead(NULL, 0, fp);
-    char * buf  = new char[size];
-    char * p    = buf;
-    _ZFileRead(buf, size, fp);
-    uint32_t *num = (uint32_t *)p;
-    p += sizeof(uint32_t);
-    for (uint32_t i = 0; i < *num; i++)
-    {
-        uint32_t *n = (uint32_t *)p;
-        p += sizeof(uint32_t);
-        _names.push_back(p);
-        p += *n;
-    }
-    delete[]buf;
-
-    size = _ZFileRead(NULL, 0, fp);
-    buf = new char[size];
-    _ZFileRead(buf, size, fp);
-
-    _db_bytes.assign(buf, size);
-    delete[]buf;
-
-    return true;
-}
-
-bool Database::Save(const char *path)
-{
-    FILE *fp = fopen(path, "wb");
-    if (!fp)
-    {
-        return false;
-    }
-
-    bool result = Save(fp);
-    fclose(fp);
-
-    return result;
-}
-
-bool Database::Save(FILE *fp)
-{
-    uint32_t length = Name.size() + 1;
-    fwrite(&length, sizeof(uint32_t), 1, fp);
-    fwrite(Name.c_str(), length, 1, fp);
-
-    size_t size = 4;
-    for (auto& n : _names)
-    {
-        size += 5 + n.size();
-    }
-
-    char *buf = new char[size];
-    memset(buf, 0, size);
-    char *p = buf;
-    *(uint32_t *)p = _names.size();
-    p += sizeof(uint32_t);
-    for (auto& n : _names)
-    {
-        *(uint32_t *)p = n.size() + 1;
-        p += sizeof(uint32_t);
-        memcpy(p, n.c_str(), n.size());
-        p += n.size() + 1;
-    }
-
-    _ZFileWrite(buf, size, fp);
-    delete[]buf;
-
-    _ZFileWrite((void*)_db_bytes.c_str(), _db_bytes.size(), fp);
-
-    return true;
-}
+    uint32_t name_offset;
+    uint32_t num;
+    uint32_t db_offset;
+    uint32_t db_size;
+};
 
 bool DB::Load(const char *path)
 {
@@ -145,35 +77,159 @@ bool DB::Load(const char *path)
         return false;
     }
 
-    uint32_t num;
-    fread(&num, sizeof(uint32_t), 1, fp);
-    fread(&DefaultVOffset, sizeof(uint32_t), 1, fp);
+    ZDB_HEADER zdbheader;
+    fread(&zdbheader, sizeof(ZDB_HEADER), 1, fp);
 
-    for (uint32_t i = 0; i < num; i++)
+    fseek(fp, zdbheader.points_offset, SEEK_SET);
+    char *    pbuf   = _ZFileRead(fp);
+    uint32_t *points = (uint32_t *)pbuf;
+
+    fseek(fp, zdbheader.strings_offset, SEEK_SET);
+    char *strings = _ZFileRead(fp);
+
+    fseek(fp, zdbheader.dbs_offset, SEEK_SET);
+    char *hsdbs = _ZFileRead(fp);
+
+    for (uint32_t i = 0; i < zdbheader.num; i++)
     {
-        push_back(Database(fp));
+        Database         db;
+        DATABASE_HEADER *header = (DATABASE_HEADER *)points;
+        points += sizeof(DATABASE_HEADER) / sizeof(uint32_t);
+        db.Name = strings + header->name_offset;
+        db.SetDb(hsdbs + header->db_offset, header->db_size);
+        for (uint32_t j = 0; j < header->num; j++)
+        {
+            db.AddName(strings + *points++);
+        }
+        push_back(db);
     }
+
+    delete[]pbuf;
+    delete[]strings;
+    delete[]hsdbs;
 
     fclose(fp);
 
     return true;
 }
 
+void DB::_GetSerializedBufSize(size_t *points_size, size_t *strings_size, size_t *hsdbs_size)
+{
+    *points_size  = 0;
+    *strings_size = 0;
+    *hsdbs_size   = 0;
+    for (auto& db : *this)
+    {
+        *points_size += sizeof(DATABASE_HEADER) / sizeof(uint32_t);
+        *points_size += db.GetNames().size();
+
+        *strings_size += db.Name.size() + 1;
+        for (auto& name : db.GetNames())
+        {
+            *strings_size += name.size() + 1;
+        }
+
+        *hsdbs_size += db.GetDbSize();
+    }
+
+    *points_size *= sizeof(uint32_t);
+}
+
+class StringBuf
+{
+public:
+    StringBuf(char *buf) : _p(buf), _start(buf) {};
+    virtual ~StringBuf() {};
+
+    uint32_t Add(std::string s)
+    {
+        uint32_t result;
+        auto     iter = _map.find(s);
+        if (iter == _map.end())
+        {
+            result = _map[s] = uint32_t(_p - _start);
+            strcpy(_p, s.c_str());
+            _p += s.size() + 1;
+        }
+        else
+        {
+            result = iter->second;
+        }
+        return result;
+    }
+
+    size_t Size() { return _p - _start; };
+
+private:
+    char *_start;
+    char *_p;
+    std::unordered_map <std::string, uint32_t> _map;
+};
+
+void DB::_SerializeToMemory(char *points, char *strings, char *hsdbs, size_t *strings_size)
+{
+    uint32_t *pp = (uint32_t *)points;
+    char *    hp = hsdbs;
+    StringBuf sb(strings);
+
+    for (auto& db : *this)
+    {
+        DATABASE_HEADER header = { sb.Add(db.Name), db.GetNames().size(), hp - hsdbs, db.GetDbSize()};
+
+        memcpy(pp, &header, sizeof(DATABASE_HEADER));
+        pp += sizeof(DATABASE_HEADER) / sizeof(uint32_t);
+
+        memcpy(hp, db.GetDb(), db.GetDbSize());
+        hp += db.GetDbSize();
+
+        for (auto& name : db.GetNames())
+        {
+            *pp++ = sb.Add(name);
+        }
+    }
+
+    *strings_size = sb.Size();
+}
+
 bool DB::Save(const char *path)
 {
-    FILE* fp = fopen(path, "wb");
+    FILE *fp = fopen(path, "wb");
     if (!fp)
     {
         return false;
     }
 
-    uint32_t num = size();
-    fwrite(&num, sizeof(uint32_t), 1, fp);
-    fwrite(&DefaultVOffset, sizeof(uint32_t), 1, fp);
-    for (auto &db : *this)
-    {
-        db.Save(fp);
-    }
+    size_t points_size;
+    size_t strings_size;
+    size_t hsdbs_size;
+
+    _GetSerializedBufSize(&points_size, &strings_size, &hsdbs_size);
+
+    char *points  = new char[points_size];
+    char *strings = new char[strings_size];
+    char *hsdbs   = new char[hsdbs_size];
+
+    _SerializeToMemory(points, strings, hsdbs, &strings_size);
+
+    ZDB_HEADER header = { size(), DefaultVOffset };
+
+    fseek(fp, sizeof(ZDB_HEADER), SEEK_SET);
+
+    header.points_offset = ftell(fp);
+    _ZFileWrite(points, points_size, fp);
+
+    header.strings_offset = ftell(fp);
+    _ZFileWrite(strings, strings_size, fp);
+
+    header.dbs_offset = ftell(fp);
+    _ZFileWrite(hsdbs, hsdbs_size, fp);
+
+    fseek(fp, 0, SEEK_SET);
+    fwrite(&header, sizeof(ZDB_HEADER), 1, fp);
+
+    delete[]points;
+    delete[]strings;
+    delete[]hsdbs;
 
     fclose(fp);
     return true;

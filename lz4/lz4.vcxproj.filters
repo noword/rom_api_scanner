@@ -15,18 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="minilzo.c">
+    <ClCompile Include="lz4.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lz4hc.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="minilzo.h">
+    <ClInclude Include="lz4.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="lzoconf.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="lzodefs.h">
+    <ClInclude Include="lz4hc.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

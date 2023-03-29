@@ -82,7 +82,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\hyperscan;$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lz4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,7 +101,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\hyperscan;$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lz4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,7 +116,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\hyperscan;$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lz4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -135,7 +135,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\hyperscan;$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lzo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>argtable3.lib;hs.lib;db.lib;lz4.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
