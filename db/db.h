@@ -56,6 +56,7 @@ public:
     uint32_t DefaultVOffset;
     bool Load(const char *path);
     bool Save(const char *path);
+    bool IsStepped();
 
 private:
     void _GetSerializedBufSize(size_t *points_size, size_t *strings_size, size_t *hsdbs_size);
