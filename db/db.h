@@ -7,6 +7,11 @@
 // compressed points block
 // compressed strings block
 // compressed hyperscan database block
+//
+// --- compress block ---
+// uint32_t size
+// uint32_t zsize
+// char*    zbuf
 
 struct ZDB_HEADER
 {

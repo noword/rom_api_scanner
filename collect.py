@@ -24,9 +24,23 @@ ARM_RELOC_BYTES = {
     102: 2,  # R_ARM_THM_JUMP11
 }
 
+PPC_RELOC_BYTES = {
+    0: 0,  # R_PPC_NONE
+    4: 2,  # R_PPC_ADDR16_LO
+    5: 2,  # R_PPC_ADDR16_HI
+    6: 2,  # R_PPC_ADDR16_HA
+    10: 0,  # R_PPC_REL24
+    11: 0,  # R_PPC_REL14
+}
 
-def fix_reloc(bcodes, offset, reloc_type):
-    size = ARM_RELOC_BYTES[reloc_type] * 2
+RELOC_BYTES = {
+    'ARM': ARM_RELOC_BYTES,
+    'PowerPC': PPC_RELOC_BYTES
+}
+
+
+def fix_reloc(arch, bcodes, offset, reloc_type):
+    size = RELOC_BYTES[arch][reloc_type] * 2
     if size > 0:
         offset *= 2
         for i in range(size):
@@ -71,20 +85,27 @@ def demangle_names(names):
     return out
 
 
+def check_supported(elf):
+    for arch, le in (('ARM', True), ('PowerPC', False)):
+        if elf.get_machine_arch() == arch and elf.little_endian == le:
+            return True
+    return False
+
+
 def find_functions(io):
     texts = {}  # key is section index, value is hex string
     symbols = []
     relocs = {}  # key is target section index, value is reloc section
 
     elf = ELFFile(io)
-    if elf.get_machine_arch() != 'ARM':
+    if not check_supported(elf):
         raise TypeError(f'unsupport arch: {elf.get_machine_arch()}')
     for i, section in enumerate(elf.iter_sections()):
         if isinstance(section, SymbolTableSection):
             for symbol in section.iter_symbols():
-                if symbol['st_info'].type in ('STT_FUNC', 'STT_LOPROC') and \
-                        isinstance(symbol['st_shndx'], int) and \
-                        '$' not in symbol.name:
+                if symbol['st_size'] > 0 and \
+                    symbol['st_info'].type in ('STT_FUNC', 'STT_LOPROC') and \
+                        isinstance(symbol['st_shndx'], int):
                     symbols.append(symbol)
         elif isinstance(section, RelocationSection):
             relocs[section['sh_info']] = section
@@ -97,7 +118,7 @@ def find_functions(io):
         if i in needed_texts_index:
             for reloc in section.iter_relocations():
                 # verboseprint(i, reloc['r_info_type'], '%x' % reloc['r_offset'])
-                texts[i] = fix_reloc(texts[i], reloc['r_offset'], reloc['r_info_type'])
+                texts[i] = fix_reloc(elf.get_machine_arch(), texts[i], reloc['r_offset'], reloc['r_info_type'])
 
     results = {}
     names = [s.name for s in symbols]
@@ -107,10 +128,7 @@ def find_functions(io):
         if elf.get_machine_arch() == 'ARM':
             start &= 0xfffffffe
         start *= 2
-        if symbol['st_size'] > 0:
-            end = start + symbol['st_size'] * 2
-        else:
-            end = None
+        end = start + symbol['st_size'] * 2
         # print(symbol['st_shndx'], symbol.name, symbol['st_info'].type, symbol['st_size'])
         buf = to_pattern_str(texts[symbol['st_shndx']][start:end])
         if buf in results:
