@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="hyperscan">
-      <UniqueIdentifier>{dae36190-78a8-4428-aebf-2cb6bb962f98}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -28,18 +25,6 @@
   <ItemGroup>
     <ClInclude Include="scanner.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="hyperscan\hs.h">
-      <Filter>hyperscan</Filter>
-    </ClInclude>
-    <ClInclude Include="hyperscan\hs_common.h">
-      <Filter>hyperscan</Filter>
-    </ClInclude>
-    <ClInclude Include="hyperscan\hs_compile.h">
-      <Filter>hyperscan</Filter>
-    </ClInclude>
-    <ClInclude Include="hyperscan\hs_runtime.h">
-      <Filter>hyperscan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

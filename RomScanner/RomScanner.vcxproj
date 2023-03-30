@@ -143,10 +143,6 @@
     <ClCompile Include="scanner.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="hyperscan\hs.h" />
-    <ClInclude Include="hyperscan\hs_common.h" />
-    <ClInclude Include="hyperscan\hs_compile.h" />
-    <ClInclude Include="hyperscan\hs_runtime.h" />
     <ClInclude Include="scanner.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

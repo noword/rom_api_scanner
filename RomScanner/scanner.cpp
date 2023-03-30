@@ -1,6 +1,6 @@
 #include <algorithm>
 #include "scanner.h"
-
+#include "hs.h"
 
 bool Scanner::Scan(int db_index, const char *name, int voffset)
 {
@@ -82,6 +82,7 @@ _SCAN_END:
 
 bool Scanner::Scan(int db_index, const char *buf, size_t size, int voffset)
 {
+    bool result = false;
     if (voffset == -1)
     {
         voffset = _db->DefaultVOffset;
@@ -89,7 +90,7 @@ bool Scanner::Scan(int db_index, const char *buf, size_t size, int voffset)
 
     if (db_index >= 0)
     {
-        _Scan(buf, size, &(*_db)[db_index], voffset);
+        result = _Scan(buf, size, &(*_db)[db_index], voffset);
     }
     else
     {
@@ -99,7 +100,8 @@ bool Scanner::Scan(int db_index, const char *buf, size_t size, int voffset)
         std::string sdk_name;
         for (auto& db : *_db)
         {
-            _Scan(buf, size, &db, voffset);
+            result = _Scan(buf, size, &db, voffset);
+            if (!result) { break; }
 
             uint32_t total_matched = 0;
             for (auto& r : _results)
@@ -119,9 +121,14 @@ bool Scanner::Scan(int db_index, const char *buf, size_t size, int voffset)
             }
         }
 
-        _results = temp_results;
-        _sdk_name = sdk_name;
+        if (result)
+        {
+            _results = temp_results;
+            _sdk_name = sdk_name;
+        }
     }
+
+    return result;
 }
 
 void Scanner::PrintResults()

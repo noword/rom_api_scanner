@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include "hs.h"
 #include "db.h"
 
 struct ResultStruct

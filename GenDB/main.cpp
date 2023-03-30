@@ -3,55 +3,11 @@
 #include <string.h>
 #include "argtable3.h"
 #include "db.h"
-#include "hs.h"
+#include "hsdb.h"
 
-#define BUF_SIZE 0x100000
+#define BUF_SIZE    0x100000
 
-char * GetHsSerializeDatabaseBytes(const char **patterns,
-                                   const unsigned int *flags,
-                                   const unsigned int *ids,
-                                   unsigned int num,
-                                   size_t *size)
-{
-    hs_database_t *     db = nullptr;
-    hs_compile_error_t *compileErr;
-    hs_error_t          err = hs_compile_multi(patterns,
-                                               flags,
-                                               ids,
-                                               num,
-                                               HS_MODE_BLOCK,
-                                               nullptr,
-                                               &db,
-                                               &compileErr);
-
-
-    if (err != HS_SUCCESS)
-    {
-        if (compileErr->expression >= 0)
-        {
-            printf("%d %s\n", compileErr->expression, patterns[compileErr->expression]);
-            //printf("%s\n", names[compileErr->expression]);
-        }
-        printf("%s\n", compileErr->message);
-        hs_free_compile_error(compileErr);
-        return nullptr;
-    }
-
-    char *bytes = nullptr;
-    *size = 0;
-    err  = hs_serialize_database(db, &bytes, size);
-    if (err != HS_SUCCESS)
-    {
-        printf("ERROR: hs_serialize_database() failed with error %u\n", err);
-        bytes = nullptr;
-    }
-
-    hs_free_database(db);
-
-    return bytes;
-}
-
-bool ReadLine(char* line, int size, FILE* fp)
+bool ReadLine(char *line, int size, FILE *fp)
 {
     if (fgets(line, size, fp) == NULL)
     {
@@ -73,8 +29,8 @@ bool GenDatabase(const char *txt_name, Database *datebase)
     char *buf = new char[BUF_SIZE];
     ReadLine(buf, BUF_SIZE, fp);
     datebase->Name = buf;
-    
-    std::vector<std::string> pattern_strs;
+
+    std::vector <std::string> pattern_strs;
     while (true)
     {
         if (!ReadLine(buf, BUF_SIZE, fp))
@@ -107,21 +63,21 @@ bool GenDatabase(const char *txt_name, Database *datebase)
 
     for (uint32_t i = 0; i < num; i++)
     {
-        names[i] = datebase->GetNames()[i].c_str();
+        names[i]    = datebase->GetNames()[i].c_str();
         patterns[i] = pattern_strs[i].c_str();
-        ids[i]   = i;
-        flags[i] = HS_FLAG_SOM_LEFTMOST;
+        ids[i]      = i;
+        flags[i]    = HS_FLAG_SOM_LEFTMOST;
     }
 
     size_t size;
-    char* bytes = GetHsSerializeDatabaseBytes(patterns, flags, ids, num, &size);
+    char * bytes = GetHsSerializeDatabaseBytes(patterns, flags, ids, num, &size);
     if (bytes == nullptr)
     {
         return false;
     }
 
     datebase->SetDb(bytes, size);
-    
+
     free(bytes);
     delete[]patterns;
     delete[]names;
@@ -134,7 +90,7 @@ bool GenDatabase(const char *txt_name, Database *datebase)
 void Generate(const char *db_name, const char **txt_names, int count, int voffset)
 {
     DB db;
-    
+
     db.DefaultVOffset = voffset;
     for (int i = 0; i < count; i++)
     {
