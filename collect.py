@@ -158,6 +158,7 @@ if __name__ == '__main__':
     parser.add_argument('path', action='store', nargs=1)
     parser.add_argument('out_path', action='store', nargs='?')
     parser.add_argument('name', action='store', nargs='?')
+    parser.add_argument('--level', action='store', type=int, nargs='?')
     parser.add_argument('--verbose', action='store_true', default=False)
     args = parser.parse_args()
 
@@ -172,6 +173,9 @@ if __name__ == '__main__':
         name = str(Path(out_path).stem)
     else:
         name = args.name
+
+    if args.level is not None:
+        out_path = f'{args.level}_{out_path}'
 
     results = {}
     for path in Path(args.path[0]).rglob('*'):

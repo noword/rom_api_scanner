@@ -30,6 +30,12 @@ struct DATABASE_HEADER
     uint32_t db_size;
 };
 
+struct Level
+{
+    int start;
+    int end;
+};
+
 class Database
 {
 public:
@@ -49,7 +55,6 @@ private:
     std::string _db_bytes;
 };
 
-
 class DB : public std::vector <Database>
 {
 public:
@@ -57,6 +62,7 @@ public:
     bool Load(const char *path);
     bool Save(const char *path);
     bool IsStepped();
+    std::vector<Level> GetLevels();
 
 private:
     void _GetSerializedBufSize(size_t *points_size, size_t *strings_size, size_t *hsdbs_size);

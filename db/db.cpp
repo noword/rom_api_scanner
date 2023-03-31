@@ -239,3 +239,32 @@ bool DB::IsStepped()
 
     return true;
 }
+
+std::vector<Level> DB::GetLevels()
+{
+    std::vector<Level> levels;
+    if (!IsStepped())
+    {
+        Level level = { 0, size() };
+        levels.push_back(level);
+        return levels;
+    }
+
+    Level level = {0, 0};
+    char last = (*this)[0].Name[0];
+    for (size_t i = 1; i < size(); i++)
+    {
+        char c = (*this)[i].Name[0];
+        if (last != c)
+        {
+            last = c;
+            level.end = i + 1;
+            levels.push_back(level);
+            level.start = i;
+        }
+    }
+    level.end = size();
+    levels.push_back(level);
+    
+    return levels;
+}

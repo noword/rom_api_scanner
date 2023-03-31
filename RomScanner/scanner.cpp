@@ -25,6 +25,30 @@ bool Scanner::Scan(int db_index, const char *name, int voffset)
     return result;
 }
 
+bool Scanner::Scan(int db_index, const char *buf, size_t size, int voffset)
+{
+    bool ret = false;
+    if (voffset == -1)
+    {
+        voffset = _db->DefaultVOffset;
+    }
+
+    if (db_index >= 0)
+    {
+        ret = Scan(buf, size, &(*_db)[db_index], voffset);
+    }
+    else if (_db->IsStepped())
+    {
+        ret = SteppedScan(buf, size, voffset);
+    }
+    else
+    {
+        ret = Scan(buf, size, voffset);
+    }
+
+    return ret;
+}
+
 static int eventHandler(unsigned int id, unsigned long long from,
                         unsigned long long to, unsigned int flags, void *ctx)
 {
@@ -33,7 +57,7 @@ static int eventHandler(unsigned int id, unsigned long long from,
     return 0;
 }
 
-bool Scanner::_Scan(const char *buf, size_t size, Database *database, int voffset)
+bool Scanner::Scan(const char *buf, size_t size, Database *database, int voffset)
 {
     hs_database_t *_hs_db      = nullptr;
     hs_scratch_t * _hs_scratch = nullptr;
@@ -80,55 +104,81 @@ _SCAN_END:
     return err == HS_SUCCESS;
 }
 
-bool Scanner::Scan(int db_index, const char *buf, size_t size, int voffset)
+bool Scanner::Scan(const char *buf, size_t size, int voffset)
 {
-    bool result = false;
-    if (voffset == -1)
-    {
-        voffset = _db->DefaultVOffset;
-    }
+    bool    ret = false;
+    Results temp_results;
 
-    if (db_index >= 0)
+    uint32_t    max_matched = 0;
+    std::string sdk_name;
+    for (auto& db : *_db)
     {
-        result = _Scan(buf, size, &(*_db)[db_index], voffset);
-    }
-    else
-    {
-        std::vector <ResultStruct> temp_results;
-
-        uint32_t max_matched = 0;
-        std::string sdk_name;
-        for (auto& db : *_db)
+        ret = Scan(buf, size, &db, voffset);
+        if (!ret)
         {
-            result = _Scan(buf, size, &db, voffset);
-            if (!result) { break; }
+            break;
+        }
 
-            uint32_t total_matched = 0;
-            for (auto& r : _results)
-            {
-                uint32_t s = r.end - r.start;
-                if (s > 8)
-                {
-                    total_matched += s;
-                }
-            }
+        uint32_t total_matched = _results.CountMarchedBytes(8);
+        if (total_matched > max_matched)
+        {
+            temp_results = _results;
+            sdk_name     = db.Name;
+            max_matched  = total_matched;
+        }
+    }
 
+    if (ret)
+    {
+        _results  = temp_results;
+        _sdk_name = sdk_name;
+    }
+    return true;
+}
+
+bool Scanner::SteppedScan(const char *buf, size_t size, int voffset)
+{
+    // collect all results
+    std::vector <Results> all_results;
+    for (auto& db : *_db)
+    {
+        if (!Scan(buf, size, &db, voffset))
+        {
+            _results.clear();
+            return false;
+        }
+        all_results.push_back(_results);
+    }
+
+    // find the best matched libs
+    std::vector <int> indexes;
+    for (auto& level : _db->GetLevels())
+    {
+        int best = level.start;
+        uint32_t max_matched = 0;
+        for (int i = level.start; i < level.end; i++)
+        {
+            Results *result = &all_results[i];
+            uint32_t total_matched = result->CountMarchedBytes(32);
             if (total_matched > max_matched)
             {
-                temp_results = _results;
-                sdk_name = db.Name;
                 max_matched = total_matched;
+                best = i;
             }
         }
-
-        if (result)
-        {
-            _results = temp_results;
-            _sdk_name = sdk_name;
-        }
+        indexes.push_back(best);
     }
 
-    return result;
+    // merge results
+    _results.clear();
+    std::vector <bool> bytes_map(size, false);
+    for (auto index : indexes)
+    {
+        Results* result = &all_results[index];
+        
+    }
+
+    return true;
 }
 
 void Scanner::PrintResults()
@@ -142,8 +192,8 @@ void Scanner::PrintResults()
 
 void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <std::string>& names)
 {
-    std::vector <bool>         map(size, false);
-    std::vector <ResultStruct> new_results;
+    std::vector <bool> bytes_map(size, false);
+    Results            new_results;
 
     std::sort(_results.begin(), _results.end(), [](ResultStruct a, ResultStruct b) {
         return a.index < b.index;
@@ -151,11 +201,11 @@ void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <s
 
     for (auto& r : _results)
     {
-        if (!map[r.start])
+        if (!bytes_map[r.start])
         {
             for (uint32_t i = r.start; i < r.end; i++)
             {
-                map[i] = true;
+                bytes_map[i] = true;
             }
             r.start += voffset;
             r.end   += voffset;
