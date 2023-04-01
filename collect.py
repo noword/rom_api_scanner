@@ -6,6 +6,7 @@ from io import BytesIO
 import argparse
 import subprocess
 import re
+import os
 
 # https://github.com/vidstige/ar/
 import ar
@@ -71,7 +72,7 @@ def __demangle_names(names):
         proc = subprocess.run('c++filt -p', stdout=subprocess.PIPE, input=buf)
         output = proc.stdout.decode('ascii')
         sep = '\r\n' if '\r\n' in output else '\n'
-        names = proc.stdout.decode('ascii').split(sep)
+        names = output.split(sep)
     return names
 
 
@@ -83,6 +84,18 @@ def demangle_names(names):
     for i in range(0, len(names), BATCH_SIZE):
         out.extend(__demangle_names(names[i:i + BATCH_SIZE]))
     return out
+
+
+TMP_NAME = 'tmp.txt'
+
+
+def demangle_ghs_names(names):
+    open(TMP_NAME, 'w').write('\n'.join(names))
+    # https://github.com/Chadderz121/ghs-demangle
+    output = subprocess.check_output(['ghs-demangle', TMP_NAME]).decode('ascii')
+    os.remove(TMP_NAME)
+    sep = '\r\n' if '\r\n' in output else '\n'
+    return output.split(sep)
 
 
 def check_supported(elf):
@@ -122,7 +135,10 @@ def find_functions(io):
 
     results = {}
     names = [s.name for s in symbols]
-    names = demangle_names(names)
+    if elf.get_machine_arch() == 'PowerPC':
+        names = demangle_ghs_names(names)
+    else:
+        names = demangle_names(names)
     for i, symbol in enumerate(symbols):
         start = symbol['st_value']
         if elf.get_machine_arch() == 'ARM':

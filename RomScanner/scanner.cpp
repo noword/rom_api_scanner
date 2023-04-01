@@ -219,10 +219,17 @@ bool Scanner::SteppedScan(const char *buf, size_t size, int voffset)
 
 void Scanner::PrintResults()
 {
-    printf("; %s\n", _sdk_name.c_str());
-    for (const auto&r : _results)
+    if (_results.size() == 0)
     {
-        printf("%08x %s\n", r.start, r.name.c_str());
+        printf("found nothing");
+    }
+    else
+    {
+        printf("; %s\n", _sdk_name.c_str());
+        for (const auto& r : _results)
+        {
+            printf("%08x %s\n", r.start, r.name.c_str());
+        }
     }
 }
 
