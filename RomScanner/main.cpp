@@ -38,8 +38,10 @@ int main(int argc, char **argv)
         if (file->count > 0)
         {
             Scanner scanner(&db);
-            scanner.Scan(index->ival[0], file->filename[0], voffset->ival[0]);
-            scanner.PrintResults();
+            if (scanner.Scan(index->ival[0], file->filename[0], voffset->ival[0]))
+            {
+                scanner.PrintResults();
+            }
         }
         else
         {

@@ -169,13 +169,13 @@ if __name__ == '__main__':
     else:
         out_path = args.out_path
 
+    if args.level is not None:
+        out_path = f'{args.level}_{out_path}'
+
     if args.name is None:
         name = str(Path(out_path).stem)
     else:
         name = args.name
-
-    if args.level is not None:
-        out_path = f'{args.level}_{out_path}'
 
     results = {}
     for path in Path(args.path[0]).rglob('*'):

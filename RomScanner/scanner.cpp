@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <unordered_map>
 #include "scanner.h"
 #include "hs.h"
 
@@ -7,6 +8,7 @@ bool Scanner::Scan(int db_index, const char *name, int voffset)
     FILE *fp = fopen(name, "rb");
     if (!fp)
     {
+        printf("failed to open %s\n", name);
         return false;
     }
 
@@ -53,7 +55,10 @@ static int eventHandler(unsigned int id, unsigned long long from,
                         unsigned long long to, unsigned int flags, void *ctx)
 {
     std::vector <ResultStruct> *results = (std::vector <ResultStruct> *)ctx;
-    results->push_back({ id, (unsigned int)from, (unsigned int)to, nullptr });
+    results->push_back({ (int32_t)id,    //index
+                         (uint32_t)from, //start
+                         (uint32_t)to    //end
+                       });
     return 0;
 }
 
@@ -86,7 +91,7 @@ bool Scanner::Scan(const char *buf, size_t size, Database *database, int voffset
     }
     else
     {
-        _PostProcessResults(size, voffset, database->GetNames());
+        _PostProcessResults(size, voffset, &database->GetNames());
         _sdk_name = database->Name;
     }
 
@@ -151,33 +156,64 @@ bool Scanner::SteppedScan(const char *buf, size_t size, int voffset)
     }
 
     // find the best matched libs
-    std::vector <int> indexes;
+    _sdk_name.clear();
+    std::unordered_map <uint64_t, std::string> result_map;
     for (auto& level : _db->GetLevels())
     {
-        int best = level.start;
+        int      best        = -1;
         uint32_t max_matched = 0;
         for (int i = level.start; i < level.end; i++)
         {
-            Results *result = &all_results[i];
+            Results *result        = &all_results[i];
             uint32_t total_matched = result->CountMarchedBytes(32);
             if (total_matched > max_matched)
             {
                 max_matched = total_matched;
-                best = i;
+                best        = i;
             }
         }
-        indexes.push_back(best);
+        if (best > -1)
+        {
+            Results *result = &all_results[best];
+            for (const auto& r : *result)
+            {
+                uint64_t key  = r.key();
+                auto     iter = result_map.find(key);
+                if (iter == result_map.end())
+                {
+                    result_map[key] = r.name;
+                }
+                else
+                {
+                    if (result_map[key].find(r.name) == std::string::npos)
+                    {
+                        result_map[key] += " / " + r.name;
+                    }
+                }
+            }
+            if (_sdk_name.size() == 0)
+            {
+                _sdk_name = (*_db)[best].Name;
+            }
+            else
+            {
+                _sdk_name += " + " + (*_db)[best].Name;
+            }
+        }
     }
 
     // merge results
     _results.clear();
-    std::vector <bool> bytes_map(size, false);
-    for (auto index : indexes)
+    for (const auto&iter : result_map)
     {
-        Results* result = &all_results[index];
-        
+        _results.push_back({ -1,                                  //index
+                             (uint32_t)(iter.first >> 32),        //start
+                             (uint32_t)(iter.first & 0xffffffff), //end
+                             iter.second                          //name
+                           });
     }
 
+    _PostProcessResults(size, voffset, nullptr);
     return true;
 }
 
@@ -186,17 +222,17 @@ void Scanner::PrintResults()
     printf("; %s\n", _sdk_name.c_str());
     for (const auto&r : _results)
     {
-        printf("%08x %s\n", r.start, r.name);
+        printf("%08x %s\n", r.start, r.name.c_str());
     }
 }
 
-void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <std::string>& names)
+void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <std::string> *names)
 {
     std::vector <bool> bytes_map(size, false);
     Results            new_results;
 
     std::sort(_results.begin(), _results.end(), [](ResultStruct a, ResultStruct b) {
-        return a.index < b.index;
+        return a.size() > b.size();
     });
 
     for (auto& r : _results)
@@ -209,7 +245,10 @@ void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <s
             }
             r.start += voffset;
             r.end   += voffset;
-            r.name   = names[r.index].c_str();
+            if (r.index > 0)
+            {
+                r.name = (*names)[r.index].c_str();
+            }
             new_results.push_back(r);
         }
     }

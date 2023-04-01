@@ -216,6 +216,8 @@ bool DB::Save(const char *path)
     return true;
 }
 
+
+// first char of name is [0-9a-z]
 bool DB::IsStepped()
 {
     if (size() == 0)
@@ -224,12 +226,25 @@ bool DB::IsStepped()
     }
 
     char last = (*this)[0].Name[0];
+    if (last != '0')
+    {
+        return false;
+    }
+
     for (size_t i = 1; i < size(); i++)
     {
         char c = (*this)[i].Name[0];
         if (last != c)
         {
-            last++;
+            if (last == '9')
+            {
+                last = 'a';
+            }
+            else
+            {
+                last++;
+            }
+
             if (last != c)
             {
                 return false;
@@ -258,7 +273,7 @@ std::vector<Level> DB::GetLevels()
         if (last != c)
         {
             last = c;
-            level.end = i + 1;
+            level.end = i;
             levels.push_back(level);
             level.start = i;
         }

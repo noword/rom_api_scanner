@@ -11,8 +11,8 @@ char * __cdecl GetHsSerializeDatabaseBytes(const char **patterns,
     hs_expr_ext **      ext = nullptr;
     ue2::Grey           grey;
 
-    grey.limitPatternLength = 1000000;
-    grey.limitLiteralLength = 1000000;
+    grey.limitPatternLength = 8000000;
+    grey.limitLiteralLength = 8000000;
 
     hs_error_t err = ue2::hs_compile_multi_int(patterns,
                                                flags,

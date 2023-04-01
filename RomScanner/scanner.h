@@ -1,14 +1,22 @@
 #pragma once
 #include <vector>
+#include <string>
 #include "db.h"
 
 struct ResultStruct
 {
-    uint32_t    index;
+    int32_t    index;
     uint32_t    start;
     uint32_t    end;
-    const char *name;
+    std::string name;
     uint32_t size() const { return end - start; };
+    uint64_t key() const 
+    { 
+        uint64_t k = start;
+        k <<= 32;
+        k |= end;
+        return k;
+    };
 };
 
 //using ResultStructVector = std::vector<ResultStruct>;
@@ -48,7 +56,7 @@ public:
     void PrintResults();
 
 private:
-    void _PostProcessResults(size_t size, int voffset, const std::vector <std::string>&names);
+    void _PostProcessResults(size_t size, int voffset, const std::vector <std::string> *names);
 
 
     DB *_db;
