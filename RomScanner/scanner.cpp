@@ -54,11 +54,11 @@ bool Scanner::Scan(int db_index, const char *buf, size_t size, int voffset)
 static int eventHandler(unsigned int id, unsigned long long from,
                         unsigned long long to, unsigned int flags, void *ctx)
 {
-    std::vector <ResultStruct> *results = (std::vector <ResultStruct> *)ctx;
-    results->push_back({ (int32_t)id,    //index
-                         (uint32_t)from, //start
-                         (uint32_t)to    //end
-                       });
+    ((std::vector <ResultStruct> *)ctx)->push_back({ (int32_t)id,    //index
+                                                     (uint32_t)from, //start
+                                                     (uint32_t)to    //end
+                                                                     //will set name in _PostProcessResults
+                                                   });
     return 0;
 }
 
