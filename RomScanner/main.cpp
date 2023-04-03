@@ -2,7 +2,7 @@
 #include "argtable3.h"
 #include "scanner.h"
 
-#define VERSION    "v0.0.7"
+#define VERSION    "v0.0.8"
 
 int main(int argc, char **argv)
 {
@@ -45,10 +45,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            for (size_t i = 0; i < db.size(); i++)
-            {
-                printf("(%llu) %s / %llu\n", i, db[i].Name.c_str(), db[i].GetNames().size());
-            }
+            db.PrintInfo();
         }
     }
 

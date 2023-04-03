@@ -63,6 +63,7 @@ public:
     bool Save(const char *path);
     bool IsStepped();
     std::vector<Level> GetLevels();
+    void PrintInfo();
 
 private:
     void _GetSerializedBufSize(size_t *points_size, size_t *strings_size, size_t *hsdbs_size);

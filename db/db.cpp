@@ -91,6 +91,7 @@ bool DB::Load(const char *path)
 
     ZDB_HEADER zdbheader;
     fread(&zdbheader, sizeof(ZDB_HEADER), 1, fp);
+    DefaultVOffset = zdbheader.voffset;
 
     fseek(fp, zdbheader.points_offset, SEEK_SET);
     char *    pbuf   = ZFileRead(fp);
@@ -282,4 +283,13 @@ std::vector<Level> DB::GetLevels()
     levels.push_back(level);
     
     return levels;
+}
+
+void DB::PrintInfo()
+{
+    printf("Default Virtual Offset: %08x\n", DefaultVOffset);
+    for (size_t i = 0; i < size(); i++)
+    {
+        printf("(%llu) %s / %llu\n", i, (*this)[i].Name.c_str(), (*this)[i].GetNames().size());
+    }
 }
