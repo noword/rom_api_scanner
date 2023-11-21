@@ -250,8 +250,11 @@ void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <s
             {
                 bytes_map[i] = true;
             }
-            r.start += voffset;
-            r.end   += voffset;
+            if (names != nullptr)
+            {
+                r.start += voffset;
+                r.end += voffset;
+            }
             if (r.index > 0)
             {
                 r.name = (*names)[r.index].c_str();
