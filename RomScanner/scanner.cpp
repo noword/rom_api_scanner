@@ -235,7 +235,7 @@ void Scanner::PrintResults()
 
 void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <std::string> *names)
 {
-    std::vector <bool> bytes_map(size, false);
+    std::vector <bool> bytes_map(size + voffset, false);
     Results            new_results;
 
     std::sort(_results.begin(), _results.end(), [](ResultStruct a, ResultStruct b) {
