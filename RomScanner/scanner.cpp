@@ -213,7 +213,7 @@ bool Scanner::SteppedScan(const char *buf, size_t size, int voffset)
                            });
     }
 
-    _PostProcessResults(size, voffset, nullptr);
+    _PostProcessResults(size + voffset, 0, nullptr);
     return true;
 }
 
@@ -235,7 +235,7 @@ void Scanner::PrintResults()
 
 void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <std::string> *names)
 {
-    std::vector <bool> bytes_map(size + voffset, false);
+    std::vector <bool> bytes_map(size, false);
     Results            new_results;
 
     std::sort(_results.begin(), _results.end(), [](ResultStruct a, ResultStruct b) {
@@ -250,11 +250,10 @@ void Scanner::_PostProcessResults(size_t size, int voffset, const std::vector <s
             {
                 bytes_map[i] = true;
             }
-            if (names != nullptr)
-            {
-                r.start += voffset;
-                r.end += voffset;
-            }
+
+            r.start += voffset;
+            r.end   += voffset;
+
             if (r.index > 0)
             {
                 r.name = (*names)[r.index].c_str();
